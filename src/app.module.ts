@@ -8,6 +8,7 @@ import { User } from './modules/user/entity/user.entity';
 import { UserModule } from './modules/user/user.module';
 import { ChatModule } from './modules/chat/chat.module';
 import { Chat } from './modules/chat/entity/chat.entity';
+import { AppGateway } from './app.gateway';
 
 @Module({
   imports: [
@@ -30,6 +31,6 @@ import { Chat } from './modules/chat/entity/chat.entity';
     ChatModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, AppGateway],
 })
 export class AppModule {}
