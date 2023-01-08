@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { CreateUserDto } from '../user/dto/create-user.dto';
 import { User } from '../user/entity/user.entity';
@@ -18,7 +18,7 @@ export class AuthService {
       const token = this.jwtService.sign(user);
       return { token };
     } catch (error) {
-      console.error(error);
+      throw new HttpException(error.message, error?.statusCode ?? 400);
     }
   }
 
@@ -28,16 +28,16 @@ export class AuthService {
       const token = this.jwtService.sign(user);
       return { token };
     } catch (error) {
-      console.error(error);
+      throw new HttpException(error.message, error?.statusCode ?? 400);
     }
   }
 
-  async auth(id: UserId): Promise<Omit<User, 'password'>> {
+  async auth(userId: ID): Promise<Omit<User, 'password'>> {
     try {
-      const user = await this.userService.getUserById(id);
+      const user = await this.userService.getUserById(userId);
       return user;
     } catch (error) {
-      console.error(error);
+      throw new HttpException(error.message, error?.statusCode ?? 400);
     }
   }
 
@@ -49,7 +49,7 @@ export class AuthService {
       const user = await this.userService.compareUser(mail, password);
       return user;
     } catch (error) {
-      console.error(error);
+      throw new HttpException(error.message, error?.statusCode ?? 400);
     }
   }
 }

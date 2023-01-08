@@ -21,7 +21,7 @@ export class WsJwtGuard implements CanActivate {
       }
       const user = this.jwtService.verify(token);
       client.handshake.auth = user;
-      console.log('ea itrab');
+
       return true;
     } catch (err) {
       throw new WsException(err.message);
