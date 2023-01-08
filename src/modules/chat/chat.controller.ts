@@ -9,7 +9,7 @@ export class ChatController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  createChat(@Req() { user }: { user: User }, @Body('userId') userId: number) {
+  createChat(@Req() { user }: { user: User }, @Body('userId') userId: ID) {
     return this.chatService.createChat(user.id, userId);
   }
 
