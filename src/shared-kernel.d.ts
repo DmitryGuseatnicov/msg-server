@@ -1,6 +1,5 @@
-type ID = number;
+type ID = string;
 
-type UserId = ID;
 type Mail = string;
 type Password = string;
 type Token = string;
