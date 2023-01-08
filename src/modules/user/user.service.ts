@@ -1,12 +1,15 @@
 import {
   BadRequestException,
+  HttpException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { comparePasswords, hastPassword } from 'src/libs/bcript';
 import { DeleteResult, Like, Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entity/user.entity';
 
 @Injectable()
@@ -19,31 +22,33 @@ export class UserService {
     try {
       dto.password = await hastPassword(dto.password);
       const user = await this.userRepository.save(dto);
+
       if (!user) {
         throw new BadRequestException();
       }
 
       return this.removePassword(user);
     } catch (error) {
-      console.error(error);
+      throw new HttpException(error.message, error?.statusCode ?? 400);
     }
   }
-  async deleteUser(id: UserId): Promise<DeleteResult> {
+
+  async deleteUser(userId: ID): Promise<DeleteResult> {
     try {
-      const user = await this.userRepository.delete({ id });
+      const user = await this.userRepository.delete({ id: userId });
 
       return user;
     } catch (error) {
-      console.error(error);
+      throw new HttpException(error.message, error?.statusCode ?? 400);
     }
   }
 
   async updateUser(
-    id: UserId,
-    dto: Partial<CreateUserDto>,
+    userId: ID,
+    dto: UpdateUserDto,
   ): Promise<Omit<User, 'password'>> {
     try {
-      let user = await this.userRepository.findOne({ where: { id } });
+      let user = await this.userRepository.findOne({ where: { id: userId } });
 
       if (!user) {
         throw new NotFoundException();
@@ -57,20 +62,20 @@ export class UserService {
 
       return this.removePassword(userUpdated);
     } catch (error) {
-      console.error(error);
+      throw new HttpException(error.message, error?.statusCode ?? 400);
     }
   }
 
-  async getUserById(id: UserId): Promise<Omit<User, 'password'>> {
+  async getUserById(userId: ID): Promise<Omit<User, 'password'>> {
     try {
-      const user = await this.userRepository.findOne({ where: { id } });
+      const user = await this.userRepository.findOne({ where: { id: userId } });
       if (!user) {
         throw new NotFoundException();
       }
 
       return this.removePassword(user);
     } catch (error) {
-      console.error(error);
+      throw new HttpException(error.message, error?.statusCode ?? 400);
     }
   }
 
@@ -85,7 +90,7 @@ export class UserService {
       });
       return user.map((user) => this.removePassword(user));
     } catch (error) {
-      console.error(error);
+      throw new HttpException(error.message, error?.statusCode ?? 400);
     }
   }
 
@@ -101,7 +106,7 @@ export class UserService {
         count,
       };
     } catch (error) {
-      console.error(error);
+      throw new HttpException(error.message, error?.statusCode ?? 400);
     }
   }
 
@@ -111,14 +116,16 @@ export class UserService {
   ): Promise<Omit<User, 'password'> | null> {
     try {
       const user = await this.userRepository.findOne({ where: { mail } });
-      const isMatchPasswords = comparePasswords(password, user.password);
+      const isMatchPasswords = await comparePasswords(password, user.password);
+      console.log({ isMatchPasswords });
 
       if (isMatchPasswords) {
         return this.removePassword(user);
       }
-      return null;
+
+      throw new UnauthorizedException();
     } catch (error) {
-      console.error(error);
+      throw new HttpException(error.message, error?.statusCode ?? 400);
     }
   }
 
